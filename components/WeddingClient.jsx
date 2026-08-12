@@ -16,20 +16,20 @@ export default function WeddingClient({ wedding, slug }) {
 
   const musicPath = wedding?.music || "/music/07.El_Leila.mp3";
 
-  // قائمة القلوب الكثيفة
-  const hearts = Array.from({ length: 45 }).map((_, index) => {
-    const sizes = ["text-xs", "text-sm", "text-base", "text-lg", "text-xl", "text-2xl"];
+  // عدد القلوب قليل وهادي (12 قلب فقط)
+  const hearts = Array.from({ length: 12 }).map((_, index) => {
+    const sizes = ["text-xs", "text-sm", "text-base", "text-lg"];
     return {
       id: index,
-      left: `${(index * 2.2) % 100}%`,
+      left: `${(index * 8) % 90 + 5}%`,
       size: sizes[index % sizes.length],
-      duration: 6 + (index % 7),
-      delay: (index * 0.25) % 6,
-      sway: (index % 2 === 0 ? 1 : -1) * (15 + (index % 20)),
+      duration: 8 + (index % 5),
+      delay: index * 0.8,
+      sway: (index % 2 === 0 ? 1 : -1) * 15,
     };
   });
 
-  // إدارة السكرول وميزة التمرير التلقائي السلس عند فتح الدعوة
+  // إدارة التمرير التلقائي البطيء
   useEffect(() => {
     let scrollInterval;
     let timeout;
@@ -39,23 +39,22 @@ export default function WeddingClient({ wedding, slug }) {
     } else {
       document.body.style.overflow = "auto";
 
-      // بدء السكرول التلقائي البطيء بعد فتح الدعوة بـ 1.2 ثانية
+      // بدء التمرير بعد الفتح بـ 1.5 ثانية
       timeout = setTimeout(() => {
         scrollInterval = setInterval(() => {
-          window.scrollBy({ top: 1, behavior: "smooth" });
+          window.scrollBy(0, 1); // تحريك بمقدار 1 بكسل ناعم
 
           // التوقف عند الوصول لآخر الصفحة
           if (
             window.innerHeight + window.scrollY >=
-            document.documentElement.scrollHeight - 10
+            document.documentElement.scrollHeight - 15
           ) {
             clearInterval(scrollInterval);
           }
-        }, 35); // تحكم في السرعة (رقم أكبر = حركة أبطأ)
-      }, 1200);
+        }, 40); // السرعة (40ms ليكون بطيء ومظبوط)
+      }, 1500);
     }
 
-    // إيقاف التمرير التلقائي لو المستخدم لمس الشاشة أو حرك السكرول بنفسه
     const stopAutoScroll = () => {
       clearInterval(scrollInterval);
       clearTimeout(timeout);
@@ -102,25 +101,23 @@ export default function WeddingClient({ wedding, slug }) {
     <main className="relative min-h-screen bg-[#FAF5EE] p-0 m-0 flex flex-col items-center overflow-x-hidden">
       <audio ref={audioRef} src={musicPath} loop preload="auto" />
 
-      {/* خلفية القلوب الكثيفة (z-50 و pointer-events-none لضمان ظهورها فوق الخلفيات على الموبايل والكمبيوتر) */}
+      {/* خلفية القلوب الهادئة جداً */}
       {isOpen && (
-        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden opacity-80">
+        <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden opacity-60">
           {hearts.map((heart) => (
             <motion.div
               key={heart.id}
-              initial={{ y: "105vh", x: 0, opacity: 0, scale: 0.4 }}
+              initial={{ y: "105vh", x: 0, opacity: 0 }}
               animate={{
                 y: "-10vh",
                 x: [0, heart.sway, -heart.sway, 0],
-                opacity: [0, 1, 0.9, 0],
-                scale: [0.4, 1.2, 0.9, 0.6],
-                rotate: [0, 20, -20, 0],
+                opacity: [0, 0.8, 0.8, 0],
               }}
               transition={{
                 duration: heart.duration,
                 repeat: Infinity,
                 delay: heart.delay,
-                ease: "easeInOut",
+                ease: "linear",
               }}
               style={{ left: heart.left }}
               className={`absolute text-[#C88A4A] ${heart.size}`}
@@ -149,7 +146,7 @@ export default function WeddingClient({ wedding, slug }) {
         </div>
       )}
 
-      {/* القائمة العائمة فوق القلوب */}
+      {/* القائمة العائمة */}
       {isOpen && (
         <div className="relative z-50">
           <FloatingMenu isPlaying={isPlaying} onToggleMusic={toggleMusic} />
