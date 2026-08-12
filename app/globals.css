@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --font-cairo: var(--font-cairo), sans-serif;
+  --font-amiri: var(--font-amiri), serif;
+  --font-tajawal: var(--font-tajawal), sans-serif;
+  --font-ruqaa: var(--font-ruqaa), serif;
+}
+
+:root {
+  --background: #FAF5EE;
+  --foreground: #5C4535;
+  --accent-gold: #C88A4A;
+  --accent-gold-hover: #B2773A;
+  --card-border: #EFE3D3;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-cairo), sans-serif;
+}
+
+.font-cairo {
+  font-family: var(--font-cairo), sans-serif;
+}
+
+.font-amiri {
+  font-family: var(--font-amiri), serif;
+}
+
+.font-tajawal {
+  font-family: var(--font-tajawal), sans-serif;
+}
+
+.font-ruqaa {
+  font-family: var(--font-ruqaa), serif;
+}
+
+button,
+a {
+  cursor: pointer;
+}
