@@ -1,122 +1,132 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
-import Hero from "./Hero";
-import FarahnaHero from "./FarahnaHero";
-import Details from "./Details";
-import Countdown from "./Countdown";
-import Wishes from "./Wishes";
-import FloatingMenu from "./FloatingMenu";
+import { useEffect, useState } from "react";
 
 export default function WeddingClient({ wedding, slug }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);
-
-  const musicPath = wedding?.music || "/music/07.El_Leila.mp3";
-
-  // قائمة بـ 45 قلب بكثافة عالية وموزعة على طول الشاشة وعرضها
-  const hearts = Array.from({ length: 45 }).map((_, index) => {
-    const sizes = ["text-xs", "text-sm", "text-base", "text-lg", "text-xl", "text-2xl"];
-    return {
-      id: index,
-      left: `${(index * 2.2) % 100}%`,
-      size: sizes[index % sizes.length],
-      duration: 6 + (index % 7),
-      delay: (index * 0.25) % 6,
-      sway: (index % 2 === 0 ? 1 : -1) * (15 + (index % 20)),
-    };
-  });
-
+  // 1. التمرير التلقائي البطيء عند فتح الصفحة
   useEffect(() => {
-    if (!isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
-    return () => {
-      document.body.style.overflow = "auto";
+    let scrollInterval;
+
+    const timeout = setTimeout(() => {
+      scrollInterval = setInterval(() => {
+        window.scrollBy({ top: 1, behavior: "smooth" });
+
+        // إيقاف السكرول عند الوصول لآخر الصفحة
+        if (
+          window.innerHeight + window.scrollY >=
+          document.documentElement.scrollHeight - 5
+        ) {
+          clearInterval(scrollInterval);
+        }
+      }, 35); // تحكم في السرعة من هنا (كلما زاد الرقم قلّت السرعة)
+    }, 1500); // بدء السكرول بعد ثانية ونصف من الفتح
+
+    // إيقاف السكرول التلقائي فوراً إذا لمس المستخدم الشاشة
+    const stopAutoScroll = () => {
+      clearInterval(scrollInterval);
+      clearTimeout(timeout);
     };
-  }, [isOpen]);
 
-  const handleOpenInvite = () => {
-    setIsOpen(true);
-    if (audioRef.current) {
-      audioRef.current
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch((err) => console.log("Audio play blocked:", err));
-    }
-  };
+    window.addEventListener("touchstart", stopAutoScroll, { passive: true });
+    window.addEventListener("touchmove", stopAutoScroll, { passive: true });
+    window.addEventListener("wheel", stopAutoScroll, { passive: true });
 
-  const toggleMusic = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch((err) => console.log("Audio play error:", err));
-    }
-  };
+    return () => {
+      clearInterval(scrollInterval);
+      clearTimeout(timeout);
+      window.removeEventListener("touchstart", stopAutoScroll);
+      window.removeEventListener("touchmove", stopAutoScroll);
+      window.removeEventListener("wheel", stopAutoScroll);
+    };
+  }, []);
 
   return (
-    <main className="relative min-h-screen bg-[#FAF5EE] p-0 m-0 flex flex-col items-center overflow-x-hidden">
-      <audio ref={audioRef} src={musicPath} loop preload="auto" />
+    <main className="relative min-h-screen bg-[#FAF7F2] text-[#5C4033] overflow-x-hidden selection:bg-[#E8D3C4]">
+      
+      {/* 2. حاوي القلوب المتحركة (مظبوط للموبايل والتابلت والكمبيوتر) */}
+      <div className="fixed inset-0 pointer-events-none z-20 overflow-hidden">
+        {[...Array(15)].map((_, index) => (
+          <span
+            key={index}
+            className="absolute text-red-400 opacity-70 animate-float"
+            style={{
+              left: `${(index * 7) % 100}%`,
+              animationDuration: `${6 + (index % 5)}s`,
+              animationDelay: `${index * 0.5}s`,
+              fontSize: `${16 + (index % 4) * 6}px`,
+            }}
+          >
+            ❤️
+          </span>
+        ))}
+      </div>
 
-      {/* خلفية القلوب الكثيفة جداً */}
-      {isOpen && (
-        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-70">
-          {hearts.map((heart) => (
-            <motion.div
-              key={heart.id}
-              initial={{ y: "105vh", x: 0, opacity: 0, scale: 0.4 }}
-              animate={{
-                y: "-10vh",
-                x: [0, heart.sway, -heart.sway, 0],
-                opacity: [0, 1, 0.9, 0],
-                scale: [0.4, 1.2, 0.9, 0.6],
-                rotate: [0, 20, -20, 0],
-              }}
-              transition={{
-                duration: heart.duration,
-                repeat: Infinity,
-                delay: heart.delay,
-                ease: "easeInOut",
-              }}
-              style={{ left: heart.left }}
-              className={`absolute text-[#C88A4A] ${heart.size}`}
-            >
-              ❤️
-            </motion.div>
-          ))}
+      {/* محتوى الدعوة */}
+      <section className="relative z-10 max-w-lg mx-auto min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        
+        {/* صورة العروسين */}
+        {wedding.heroImage && (
+          <div className="w-48 h-48 md:w-56 md:h-56 rounded-full overflow-hidden border-4 border-[#D4AF37] shadow-xl mb-6 transform hover:scale-105 transition duration-500">
+            <img
+              src={`/${wedding.heroImage}`}
+              alt={`${wedding.groom} & ${wedding.bride}`}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+
+        {/* الأسماء */}
+        <h1 className="text-4xl md:text-5xl font-amiri font-bold text-[#4A3228] mb-2">
+          {wedding.groom} & {wedding.bride}
+        </h1>
+
+        <p className="text-lg font-serif text-[#8C6D58] mb-6">
+          يتشرفان بدعوتكم لحضور حفل الزفاف
+        </p>
+
+        {/* التاريخ والقاعة */}
+        <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl border border-[#E8D3C4] shadow-sm w-full mb-6">
+          <p className="text-xl font-bold text-[#5C4033] mb-1">
+            {wedding.displayDate || wedding.date}
+          </p>
+          <p className="text-md text-[#7A5C4A]">{wedding.venue}</p>
         </div>
-      )}
 
-      {!isOpen && (
-        <div onClick={handleOpenInvite} className="w-full cursor-pointer">
-          <Hero wedding={wedding} onOpen={handleOpenInvite} />
-        </div>
-      )}
+        {/* زر الخريطة */}
+        {wedding.mapUrl && (
+          <a
+            href={wedding.mapUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-[#5C4033] text-white px-6 py-3 rounded-full shadow-lg hover:bg-[#4A3228] transition duration-300 mb-8"
+          >
+            📍 موقع القاعة على الخريطة
+          </a>
+        )}
+      </section>
 
-      {/* الفريم الأوسط */}
-      {isOpen && (
-        <div className="w-full max-w-4xl bg-[#FFFDF9] min-h-screen shadow-[0_4px_35px_rgba(0,0,0,0.04)] border-x border-[#EFE3D3] relative z-10 transition-all duration-500">
-          <section id="invite-content" className="pt-0">
-            <FarahnaHero wedding={wedding} />
-            <Details wedding={wedding} />
-            <Countdown date={wedding?.date} />
-            <Wishes weddingId={wedding?.id || slug} />
-          </section>
-        </div>
-      )}
-
-      {isOpen && (
-        <FloatingMenu isPlaying={isPlaying} onToggleMusic={toggleMusic} />
-      )}
+      {/* CSS الأنيميشن الخاص بحركة القلوب */}
+      <style jsx global>{`
+        @keyframes float {
+          0% {
+            transform: translateY(105vh) rotate(0deg);
+            opacity: 0;
+          }
+          10% {
+            opacity: 0.8;
+          }
+          90% {
+            opacity: 0.8;
+          }
+          100% {
+            transform: translateY(-10vh) rotate(360deg);
+            opacity: 0;
+          }
+        }
+        .animate-float {
+          animation: float linear infinite;
+        }
+      `}</style>
     </main>
   );
 }
