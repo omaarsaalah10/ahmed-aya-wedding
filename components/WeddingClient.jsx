@@ -16,7 +16,7 @@ export default function WeddingClient({ wedding, slug }) {
 
   const musicPath = wedding?.music || "/music/07.El_Leila.mp3";
 
-  // عدد القلوب قليل وهادي (12 قلب فقط)
+  // 12 قلب هادئين
   const hearts = Array.from({ length: 12 }).map((_, index) => {
     const sizes = ["text-xs", "text-sm", "text-base", "text-lg"];
     return {
@@ -29,35 +29,45 @@ export default function WeddingClient({ wedding, slug }) {
     };
   });
 
-  // إدارة التمرير التلقائي البطيء
+  // إدارة التمرير التلقائي السريع والمدعوم على الموبايل واللابتوب
   useEffect(() => {
-    let scrollInterval;
-    let timeout;
+    let animationFrameId;
+    let timeoutId;
+    let isAutoScrolling = true;
 
     if (!isOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "auto";
 
-      // بدء التمرير بعد الفتح بـ 1.5 ثانية
-      timeout = setTimeout(() => {
-        scrollInterval = setInterval(() => {
-          window.scrollBy(0, 1); // تحريك بمقدار 1 بكسل ناعم
+      const performScroll = () => {
+        if (!isAutoScrolling) return;
 
-          // التوقف عند الوصول لآخر الصفحة
-          if (
-            window.innerHeight + window.scrollY >=
-            document.documentElement.scrollHeight - 15
-          ) {
-            clearInterval(scrollInterval);
-          }
-        }, 40); // السرعة (40ms ليكون بطيء ومظبوط)
-      }, 1500);
+        // التمرير بمقدار 2.5 بكسل للوصول لسرعة أسرع وأوضح
+        const currentScroll = window.scrollY || window.pageYOffset;
+        window.scrollTo(0, currentScroll + 2.5);
+
+        // التوقف عند الوصول لنهاية الصفحة
+        const isAtBottom =
+          window.innerHeight + currentScroll >=
+          document.documentElement.scrollHeight - 10;
+
+        if (!isAtBottom && isAutoScrolling) {
+          animationFrameId = requestAnimationFrame(performScroll);
+        }
+      };
+
+      // بدء السكرول بعد الفتح بـ 800 ملي ثانية
+      timeoutId = setTimeout(() => {
+        animationFrameId = requestAnimationFrame(performScroll);
+      }, 800);
     }
 
+    // إيقاف السكرول التلقائي فور لمس الشاشة أو التفاعل من المستخدم
     const stopAutoScroll = () => {
-      clearInterval(scrollInterval);
-      clearTimeout(timeout);
+      isAutoScrolling = false;
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (timeoutId) clearTimeout(timeoutId);
     };
 
     window.addEventListener("touchstart", stopAutoScroll, { passive: true });
@@ -66,8 +76,9 @@ export default function WeddingClient({ wedding, slug }) {
 
     return () => {
       document.body.style.overflow = "auto";
-      clearInterval(scrollInterval);
-      clearTimeout(timeout);
+      isAutoScrolling = false;
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (timeoutId) clearTimeout(timeoutId);
       window.removeEventListener("touchstart", stopAutoScroll);
       window.removeEventListener("touchmove", stopAutoScroll);
       window.removeEventListener("wheel", stopAutoScroll);
@@ -101,7 +112,7 @@ export default function WeddingClient({ wedding, slug }) {
     <main className="relative min-h-screen bg-[#FAF5EE] p-0 m-0 flex flex-col items-center overflow-x-hidden">
       <audio ref={audioRef} src={musicPath} loop preload="auto" />
 
-      {/* خلفية القلوب الهادئة جداً */}
+      {/* خلفية القلوب الهادئة */}
       {isOpen && (
         <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden opacity-60">
           {hearts.map((heart) => (
