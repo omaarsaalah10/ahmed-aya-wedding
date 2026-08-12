@@ -16,7 +16,7 @@ export default function WeddingClient({ wedding, slug }) {
 
   const musicPath = wedding?.music || "/music/07.El_Leila.mp3";
 
-  // قائمة بـ 45 قلب بكثافة عالية وموزعة على طول الشاشة وعرضها
+  // قائمة القلوب الكثيفة
   const hearts = Array.from({ length: 45 }).map((_, index) => {
     const sizes = ["text-xs", "text-sm", "text-base", "text-lg", "text-xl", "text-2xl"];
     return {
@@ -29,14 +29,49 @@ export default function WeddingClient({ wedding, slug }) {
     };
   });
 
+  // إدارة السكرول وميزة التمرير التلقائي السلس عند فتح الدعوة
   useEffect(() => {
+    let scrollInterval;
+    let timeout;
+
     if (!isOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "auto";
+
+      // بدء السكرول التلقائي البطيء بعد فتح الدعوة بـ 1.2 ثانية
+      timeout = setTimeout(() => {
+        scrollInterval = setInterval(() => {
+          window.scrollBy({ top: 1, behavior: "smooth" });
+
+          // التوقف عند الوصول لآخر الصفحة
+          if (
+            window.innerHeight + window.scrollY >=
+            document.documentElement.scrollHeight - 10
+          ) {
+            clearInterval(scrollInterval);
+          }
+        }, 35); // تحكم في السرعة (رقم أكبر = حركة أبطأ)
+      }, 1200);
     }
+
+    // إيقاف التمرير التلقائي لو المستخدم لمس الشاشة أو حرك السكرول بنفسه
+    const stopAutoScroll = () => {
+      clearInterval(scrollInterval);
+      clearTimeout(timeout);
+    };
+
+    window.addEventListener("touchstart", stopAutoScroll, { passive: true });
+    window.addEventListener("touchmove", stopAutoScroll, { passive: true });
+    window.addEventListener("wheel", stopAutoScroll, { passive: true });
+
     return () => {
       document.body.style.overflow = "auto";
+      clearInterval(scrollInterval);
+      clearTimeout(timeout);
+      window.removeEventListener("touchstart", stopAutoScroll);
+      window.removeEventListener("touchmove", stopAutoScroll);
+      window.removeEventListener("wheel", stopAutoScroll);
     };
   }, [isOpen]);
 
@@ -67,9 +102,9 @@ export default function WeddingClient({ wedding, slug }) {
     <main className="relative min-h-screen bg-[#FAF5EE] p-0 m-0 flex flex-col items-center overflow-x-hidden">
       <audio ref={audioRef} src={musicPath} loop preload="auto" />
 
-      {/* خلفية القلوب الكثيفة جداً */}
+      {/* خلفية القلوب الكثيفة (z-50 و pointer-events-none لضمان ظهورها فوق الخلفيات على الموبايل والكمبيوتر) */}
       {isOpen && (
-        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-70">
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden opacity-80">
           {hearts.map((heart) => (
             <motion.div
               key={heart.id}
@@ -114,8 +149,11 @@ export default function WeddingClient({ wedding, slug }) {
         </div>
       )}
 
+      {/* القائمة العائمة فوق القلوب */}
       {isOpen && (
-        <FloatingMenu isPlaying={isPlaying} onToggleMusic={toggleMusic} />
+        <div className="relative z-50">
+          <FloatingMenu isPlaying={isPlaying} onToggleMusic={toggleMusic} />
+        </div>
       )}
     </main>
   );
