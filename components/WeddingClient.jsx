@@ -29,14 +29,13 @@ export default function WeddingClient({ wedding, slug }) {
     };
   });
 
-  // إدارة التمرير فائق النعومة الخالي من الـ Lag
+  // إدارة التمرير التلقائي الهادئ والناعم
   useEffect(() => {
     if (!isOpen) {
       document.body.style.overflow = "hidden";
       return;
     }
 
-    // إيقاف scroll-behavior smooth أثناء الحركة البرمجية لمنع التقطيع
     document.documentElement.style.scrollBehavior = "auto";
     document.body.style.scrollBehavior = "auto";
     document.body.style.overflow = "auto";
@@ -47,11 +46,10 @@ export default function WeddingClient({ wedding, slug }) {
     let isRunning = true;
     let lastTimestamp = null;
     
-    // متغير لتخزين المسافة بدقة كسرية حقيقية لمنع الرعشة
     let currentScrollPos = window.scrollY || window.pageYOffset || 0;
 
-    // السرعة بالبكسل في الثانية (110 سرعة ممتازة ومريحة)
-    const SPEED_PIXELS_PER_SEC = 110;
+    // تم تقليل السرعة سيكة بسيطة لتكون هادئة وأنيقة (75 بكسل/ثانية)
+    const SPEED_PIXELS_PER_SEC = 75;
 
     const scrollLoop = (timestamp) => {
       if (!isRunning) return;
@@ -64,7 +62,6 @@ export default function WeddingClient({ wedding, slug }) {
       const deltaTime = (timestamp - lastTimestamp) / 1000;
       lastTimestamp = timestamp;
 
-      // تجميع المسافة بسلاسة وتطبيقها
       currentScrollPos += SPEED_PIXELS_PER_SEC * deltaTime;
       window.scrollTo(0, currentScrollPos);
 
