@@ -29,7 +29,7 @@ export default function WeddingClient({ wedding, slug }) {
     };
   });
 
-  // إدارة التمرير التلقائي الهادئ والناعم
+  // إدارة التمرير التلقائي فائق الهدوء
   useEffect(() => {
     if (!isOpen) {
       document.body.style.overflow = "hidden";
@@ -48,8 +48,8 @@ export default function WeddingClient({ wedding, slug }) {
     
     let currentScrollPos = window.scrollY || window.pageYOffset || 0;
 
-    // تم تقليل السرعة سيكة بسيطة لتكون هادئة وأنيقة (75 بكسل/ثانية)
-    const SPEED_PIXELS_PER_SEC = 75;
+    // سرعة أبطأ وهادية ومريحة جداً للعين (50 بكسل/ثانية)
+    const SPEED_PIXELS_PER_SEC = 50;
 
     const scrollLoop = (timestamp) => {
       if (!isRunning) return;
