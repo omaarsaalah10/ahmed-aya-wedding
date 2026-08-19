@@ -16,7 +16,7 @@ export default function WeddingClient({ wedding, slug }) {
 
   const musicPath = wedding?.music || "/music/07.El_Leila.mp3";
 
-  // قائمة 8 قلوب فقط ليكون شكلها هادئ ورقيق جداً
+  // 8 قلوب هادئة
   const hearts = Array.from({ length: 8 }).map((_, index) => {
     const sizes = ["text-xs", "text-sm", "text-base", "text-lg"];
     return {
@@ -29,7 +29,7 @@ export default function WeddingClient({ wedding, slug }) {
     };
   });
 
-  // التحكم في السكرول التلقائي السريع والأنيق المتوافق مع أجهزة الآيفون وباقي الشاشات
+  // إدارة التمرير التلقائي السريع
   useEffect(() => {
     if (!isOpen) {
       document.body.style.overflow = "hidden";
@@ -42,15 +42,19 @@ export default function WeddingClient({ wedding, slug }) {
     let scrollInterval;
     let isCancelled = false;
 
-    // مهلة ثانية واحدة لبدء التمرير
+    // مهلة ثانية واحدة قبل بدء التمرير
     const timeoutId = setTimeout(() => {
       if (isCancelled) return;
 
       scrollInterval = setInterval(() => {
-        const currentPos = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-        
-        // زيادة المقدار إلى 1.8 بكسل لسرعة أسرع سيكة
-        window.scrollTo(0, currentPos + 1.8);
+        const currentPos =
+          window.pageYOffset ||
+          document.documentElement.scrollTop ||
+          document.body.scrollTop ||
+          0;
+
+        // تسريع التمرير بمقدار 3.5 بكسل في كل فريم
+        window.scrollTo(0, currentPos + 3.5);
 
         const isAtBottom =
           window.innerHeight + currentPos >=
@@ -59,7 +63,7 @@ export default function WeddingClient({ wedding, slug }) {
         if (isAtBottom) {
           clearInterval(scrollInterval);
         }
-      }, 20); // 20ms لحركة أسرع وأنعم
+      }, 16); // 16ms تعادل 60 إطار بالثانية لحركة سريعة وفائقة النعومة
     }, 1000);
 
     const stopAutoScroll = () => {
@@ -109,7 +113,7 @@ export default function WeddingClient({ wedding, slug }) {
     <main className="relative min-h-screen bg-[#FAF5EE] p-0 m-0 flex flex-col items-center overflow-x-hidden">
       <audio ref={audioRef} src={musicPath} loop preload="auto" />
 
-      {/* خلفية القلوب (8 قلوب هادئة) */}
+      {/* خلفية القلوب */}
       {isOpen && (
         <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden opacity-60">
           {hearts.map((heart) => (
