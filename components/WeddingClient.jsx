@@ -16,7 +16,7 @@ export default function WeddingClient({ wedding, slug }) {
 
   const musicPath = wedding?.music || "/music/07.El_Leila.mp3";
 
-  // 8 قلوب خفيفة جداً ومحسنة للأداء
+  // 8 قلوب هادئة وخفيفة
   const hearts = Array.from({ length: 8 }).map((_, index) => {
     const sizes = ["text-xs", "text-sm", "text-base", "text-lg"];
     return {
@@ -29,47 +29,55 @@ export default function WeddingClient({ wedding, slug }) {
     };
   });
 
-  // إدارة السكرول فائق النعومة بـ requestAnimationFrame
+  // إدارة التمرير فائق النعومة الخالي من الـ Lag
   useEffect(() => {
     if (!isOpen) {
       document.body.style.overflow = "hidden";
       return;
     }
 
-    document.body.style.overflow = "";
-    document.documentElement.style.overflow = "";
+    // إيقاف scroll-behavior smooth أثناء الحركة البرمجية لمنع التقطيع
+    document.documentElement.style.scrollBehavior = "auto";
+    document.body.style.scrollBehavior = "auto";
+    document.body.style.overflow = "auto";
+    document.documentElement.style.overflow = "auto";
 
     let animationFrameId;
     let timeoutId;
     let isRunning = true;
-    let lastTime = null;
+    let lastTimestamp = null;
+    
+    // متغير لتخزين المسافة بدقة كسرية حقيقية لمنع الرعشة
+    let currentScrollPos = window.scrollY || window.pageYOffset || 0;
 
-    // سرعة السكرول (بكسل في الثانية) - سرعة ممتازة وسلسة جداً
-    const SCROLL_SPEED = 90; 
+    // السرعة بالبكسل في الثانية (110 سرعة ممتازة ومريحة)
+    const SPEED_PIXELS_PER_SEC = 110;
 
-    const step = (timestamp) => {
+    const scrollLoop = (timestamp) => {
       if (!isRunning) return;
 
-      if (!lastTime) lastTime = timestamp;
-      const deltaTime = (timestamp - lastTime) / 1000;
-      lastTime = timestamp;
+      if (!lastTimestamp) {
+        lastTimestamp = timestamp;
+        currentScrollPos = window.scrollY || window.pageYOffset || 0;
+      }
 
-      // حساب المسافة بدقة متناهية متزامنة مع شاشة الجهاز
-      const scrollStep = SCROLL_SPEED * deltaTime;
-      window.scrollBy(0, scrollStep);
+      const deltaTime = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
 
-      const isAtBottom =
-        window.innerHeight + window.scrollY >=
-        document.documentElement.scrollHeight - 25;
+      // تجميع المسافة بسلاسة وتطبيقها
+      currentScrollPos += SPEED_PIXELS_PER_SEC * deltaTime;
+      window.scrollTo(0, currentScrollPos);
 
-      if (!isAtBottom && isRunning) {
-        animationFrameId = requestAnimationFrame(step);
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight - 20;
+
+      if (currentScrollPos < maxScroll && isRunning) {
+        animationFrameId = requestAnimationFrame(scrollLoop);
       }
     };
 
-    // مهلة ثانية واحدة قبل بدء السكرول
+    // مهلة ثانية واحدة قبل بدء النزول
     timeoutId = setTimeout(() => {
-      animationFrameId = requestAnimationFrame(step);
+      animationFrameId = requestAnimationFrame(scrollLoop);
     }, 1000);
 
     const stopAutoScroll = () => {
@@ -119,7 +127,7 @@ export default function WeddingClient({ wedding, slug }) {
     <main className="relative min-h-screen bg-[#FAF5EE] p-0 m-0 flex flex-col items-center overflow-x-hidden">
       <audio ref={audioRef} src={musicPath} loop preload="auto" />
 
-      {/* خلفية القلوب مع تسريع الهاردوير will-change لمنع الـ Lag تماماً */}
+      {/* خلفية القلوب */}
       {isOpen && (
         <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden opacity-60">
           {hearts.map((heart) => (
@@ -139,7 +147,7 @@ export default function WeddingClient({ wedding, slug }) {
               }}
               style={{ 
                 left: heart.left,
-                willChange: "transform, opacity",
+                willChange: "transform",
                 transform: "translateZ(0)"
               }}
               className={`absolute text-[#C88A4A] ${heart.size}`}
