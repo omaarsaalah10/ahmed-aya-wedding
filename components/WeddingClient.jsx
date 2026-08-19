@@ -16,7 +16,7 @@ export default function WeddingClient({ wedding, slug }) {
 
   const musicPath = wedding?.music || "/music/07.El_Leila.mp3";
 
-  // 8 قلوب هادئة
+  // 8 قلوب خفيفة جداً ومحسنة للأداء
   const hearts = Array.from({ length: 8 }).map((_, index) => {
     const sizes = ["text-xs", "text-sm", "text-base", "text-lg"];
     return {
@@ -29,7 +29,7 @@ export default function WeddingClient({ wedding, slug }) {
     };
   });
 
-  // إدارة التمرير التلقائي السريع
+  // إدارة السكرول فائق النعومة بـ requestAnimationFrame
   useEffect(() => {
     if (!isOpen) {
       document.body.style.overflow = "hidden";
@@ -39,37 +39,43 @@ export default function WeddingClient({ wedding, slug }) {
     document.body.style.overflow = "";
     document.documentElement.style.overflow = "";
 
-    let scrollInterval;
-    let isCancelled = false;
+    let animationFrameId;
+    let timeoutId;
+    let isRunning = true;
+    let lastTime = null;
 
-    // مهلة ثانية واحدة قبل بدء التمرير
-    const timeoutId = setTimeout(() => {
-      if (isCancelled) return;
+    // سرعة السكرول (بكسل في الثانية) - سرعة ممتازة وسلسة جداً
+    const SCROLL_SPEED = 90; 
 
-      scrollInterval = setInterval(() => {
-        const currentPos =
-          window.pageYOffset ||
-          document.documentElement.scrollTop ||
-          document.body.scrollTop ||
-          0;
+    const step = (timestamp) => {
+      if (!isRunning) return;
 
-        // تسريع التمرير بمقدار 3.5 بكسل في كل فريم
-        window.scrollTo(0, currentPos + 3.5);
+      if (!lastTime) lastTime = timestamp;
+      const deltaTime = (timestamp - lastTime) / 1000;
+      lastTime = timestamp;
 
-        const isAtBottom =
-          window.innerHeight + currentPos >=
-          document.documentElement.scrollHeight - 25;
+      // حساب المسافة بدقة متناهية متزامنة مع شاشة الجهاز
+      const scrollStep = SCROLL_SPEED * deltaTime;
+      window.scrollBy(0, scrollStep);
 
-        if (isAtBottom) {
-          clearInterval(scrollInterval);
-        }
-      }, 16); // 16ms تعادل 60 إطار بالثانية لحركة سريعة وفائقة النعومة
+      const isAtBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 25;
+
+      if (!isAtBottom && isRunning) {
+        animationFrameId = requestAnimationFrame(step);
+      }
+    };
+
+    // مهلة ثانية واحدة قبل بدء السكرول
+    timeoutId = setTimeout(() => {
+      animationFrameId = requestAnimationFrame(step);
     }, 1000);
 
     const stopAutoScroll = () => {
-      isCancelled = true;
-      clearTimeout(timeoutId);
-      if (scrollInterval) clearInterval(scrollInterval);
+      isRunning = false;
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (timeoutId) clearTimeout(timeoutId);
     };
 
     window.addEventListener("touchstart", stopAutoScroll, { passive: true });
@@ -77,9 +83,9 @@ export default function WeddingClient({ wedding, slug }) {
     window.addEventListener("wheel", stopAutoScroll, { passive: true });
 
     return () => {
-      isCancelled = true;
-      clearTimeout(timeoutId);
-      if (scrollInterval) clearInterval(scrollInterval);
+      isRunning = false;
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (timeoutId) clearTimeout(timeoutId);
       window.removeEventListener("touchstart", stopAutoScroll);
       window.removeEventListener("touchmove", stopAutoScroll);
       window.removeEventListener("wheel", stopAutoScroll);
@@ -113,7 +119,7 @@ export default function WeddingClient({ wedding, slug }) {
     <main className="relative min-h-screen bg-[#FAF5EE] p-0 m-0 flex flex-col items-center overflow-x-hidden">
       <audio ref={audioRef} src={musicPath} loop preload="auto" />
 
-      {/* خلفية القلوب */}
+      {/* خلفية القلوب مع تسريع الهاردوير will-change لمنع الـ Lag تماماً */}
       {isOpen && (
         <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden opacity-60">
           {hearts.map((heart) => (
@@ -131,7 +137,11 @@ export default function WeddingClient({ wedding, slug }) {
                 delay: heart.delay,
                 ease: "linear",
               }}
-              style={{ left: heart.left }}
+              style={{ 
+                left: heart.left,
+                willChange: "transform, opacity",
+                transform: "translateZ(0)"
+              }}
               className={`absolute text-[#C88A4A] ${heart.size}`}
             >
               ❤️
